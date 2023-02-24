@@ -25,13 +25,16 @@ public:
     void dynamicCallback(tag_detector::dynamicConfig& config);
     void receiveFromCam(const sensor_msgs::ImageConstPtr &image);
     void imgProcess();
+    void contoursProcess(const cv::Mat *mor_ptr,int color);
+    void resultVisualizaion(const std::vector<cv::Point2i> &hull);
 
 
     ros::NodeHandle nh_;
     ros::Subscriber img_subscriber_;
     ros::Publisher hsv_red_publisher_;
     ros::Publisher hsv_blue_publisher_;
-    ros::Publisher masked_publisher_;
+    ros::Publisher masked_red_publisher_;
+    ros::Publisher masked_blue_publisher_;
     ros::Publisher segmentation_publisher_;
     dynamic_reconfigure::Server<tag_detector::dynamicConfig> server_;
     dynamic_reconfigure::Server<tag_detector::dynamicConfig>::CallbackType callback_;
