@@ -26,7 +26,7 @@ public:
     void receiveFromCam(const sensor_msgs::ImageConstPtr &image);
     void imgProcess();
     void contoursProcess(const cv::Mat *mor_ptr,int color);
-    void resultVisualizaion(const std::vector<cv::Point2i> &hull);
+    void resultVisualizaion(const std::vector<cv::Point2i> &hull,double scale);
 
 
     ros::NodeHandle nh_;
