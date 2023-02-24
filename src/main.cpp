@@ -118,77 +118,67 @@ void Tag::dynamicCallback(tag_detector::dynamicConfig &config)
 
 void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull)
 {
-//    if (cv::matchShapes(hull,hull_a_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,"A",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-//    else if (cv::matchShapes(hull,hull_b_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,"B",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-//    else if (cv::matchShapes(hull,hull_c_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,"C",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-//    else if (cv::matchShapes(hull,hull_d_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,"D",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-//    else if (cv::matchShapes(hull,hull_e_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,"E",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-    auto moment = cv::moments(hull);
-    //centriod
-    int cx = int(moment.m10 / moment.m00);
-    int cy = int(moment.m01 / moment.m00);
-    cv::Point2f centroid(cx, cy);
-    // centroid and polylines green
-    cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-    cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//    cv::putText(cv_image_->image,"E",centroid,1,3,cv::Scalar(0,255,255),3);
-
-//    else std::cout<<"matches fail"<<std::endl;
+    if (cv::matchShapes(hull,hull_a_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
+    {
+        auto moment = cv::moments(hull);
+        //centriod
+        int cx = int(moment.m10 / moment.m00);
+        int cy = int(moment.m01 / moment.m00);
+        cv::Point2f centroid(cx, cy);
+        // centroid and polylines green
+        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
+        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
+        cv::putText(cv_image_->image,"A",centroid,1,3,cv::Scalar(0,255,255),3);
+    }
+    else if (cv::matchShapes(hull,hull_b_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
+    {
+        auto moment = cv::moments(hull);
+        //centriod
+        int cx = int(moment.m10 / moment.m00);
+        int cy = int(moment.m01 / moment.m00);
+        cv::Point2f centroid(cx, cy);
+        // centroid and polylines green
+        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
+        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
+        cv::putText(cv_image_->image,"B",centroid,1,3,cv::Scalar(0,255,255),3);
+    }
+    else if (cv::matchShapes(hull,hull_c_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
+    {
+        auto moment = cv::moments(hull);
+        //centriod
+        int cx = int(moment.m10 / moment.m00);
+        int cy = int(moment.m01 / moment.m00);
+        cv::Point2f centroid(cx, cy);
+        // centroid and polylines green
+        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
+        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
+        cv::putText(cv_image_->image,"C",centroid,1,3,cv::Scalar(0,255,255),3);
+    }
+    else if (cv::matchShapes(hull,hull_d_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
+    {
+        auto moment = cv::moments(hull);
+        //centriod
+        int cx = int(moment.m10 / moment.m00);
+        int cy = int(moment.m01 / moment.m00);
+        cv::Point2f centroid(cx, cy);
+        // centroid and polylines green
+        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
+        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
+        cv::putText(cv_image_->image,"D",centroid,1,3,cv::Scalar(0,255,255),3);
+    }
+    else if (cv::matchShapes(hull,hull_e_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
+    {
+        auto moment = cv::moments(hull);
+        //centriod
+        int cx = int(moment.m10 / moment.m00);
+        int cy = int(moment.m01 / moment.m00);
+        cv::Point2f centroid(cx, cy);
+        // centroid and polylines green
+        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
+        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
+        cv::putText(cv_image_->image,"E",centroid,1,3,cv::Scalar(0,255,255),3);
+    }
+    else std::cout<<"matches fail"<<std::endl;
 
 }
 
