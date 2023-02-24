@@ -37,31 +37,46 @@ void Tag::onInit()
     std::vector<cv::Point> hull_d;
     std::vector<cv::Point> hull_e;
 
-    cv::findContours(binary_a,contours_a_vec,cv::RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(binary_a,contours_a_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
     std::sort(contours_a_vec.begin(),contours_a_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_a_vec[0],hull_a, true);
+//    cv::convexHull(contours_a_vec[1],hull_a, true);
+    cv::polylines(temp_A,hull_a, true,cv::Scalar::all(0),3);
+
     hull_a_=hull_a;
 
-    cv::findContours(binary_b,contours_b_vec,cv::RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(binary_b,contours_b_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
     std::sort(contours_b_vec.begin(),contours_b_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_b_vec[0],hull_b, true);
+//    cv::convexHull(contours_b_vec[1],hull_b, true);
+    cv::polylines(temp_B,hull_b, true,cv::Scalar::all(0),3);
+
     hull_b_=hull_b;
 
-    cv::findContours(binary_c,contours_c_vec,cv::RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(binary_c,contours_c_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
     std::sort(contours_c_vec.begin(),contours_c_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_c_vec[0],hull_c, true);
+//    cv::convexHull(contours_c_vec[1],hull_c, true);
+    cv::polylines(temp_C,hull_c, true,cv::Scalar::all(0),3);
+
     hull_c_=hull_c;
 
-    cv::findContours(binary_d,contours_d_vec,cv::RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(binary_d,contours_d_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
     std::sort(contours_d_vec.begin(),contours_d_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_d_vec[0],hull_d, true);
+//    cv::convexHull(contours_d_vec[1],hull_d, true);
+    cv::polylines(temp_D,hull_d, true,cv::Scalar::all(0),3);
+
     hull_d_=hull_d;
 
-    cv::findContours(binary_e,contours_e_vec,cv::RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(binary_e,contours_e_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
     std::sort(contours_e_vec.begin(),contours_e_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_e_vec[0],hull_e, true);
+    cv::convexHull(contours_e_vec[1],hull_e, true);
+//    cv::polylines(temp_E,hull_e, true,cv::Scalar::all(0),3);
     hull_e_=hull_e;
-
+//    cv::imshow("outputa",temp_A);
+//    cv::imshow("outputb",temp_B);
+//    cv::imshow("outputc",temp_C);
+//    cv::imshow("outputd",temp_D);
+//    cv::imshow("outpute",temp_E);
+//    cv::waitKey(0);
+//    cv::destroyAllWindows();
     std::cout<<"temp init finished"<<std::endl;
 }
 
@@ -201,25 +216,36 @@ void Tag::contoursProcess(const cv::Mat *mor_ptr,int color)
     auto max_area_hull=hull_vec_ptr[0][0];
     delete  hull_vec_ptr;
     delete contours_vec_ptr;
-    cv::fillConvexPoly(*blank_mask_ptr,max_area_hull,cv::Scalar(255));
+//    cv::fillConvexPoly(*blank_mask_ptr,max_area_hull,cv::Scalar(255));
 
-    auto * mask_ptr=new cv::Mat();
-    cv::bitwise_and(*mor_ptr,*blank_mask_ptr,*mask_ptr);
-    cv::bitwise_xor(*blank_mask_ptr,*mask_ptr,*mask_ptr);
-    if (color) masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *mask_ptr).toImageMsg());
-    else masked_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *mask_ptr).toImageMsg());
+    resultVisualizaion(max_area_hull);
+//    auto moment = cv::moments(max_area_hull);
+//    //centriod
+//    int cx = int(moment.m10 / moment.m00);
+//    int cy = int(moment.m01 / moment.m00);
+//    cv::Point2f centroid(cx, cy);
+//    // centroid and polylines green
+//    cv::polylines(cv_image_->image, max_area_hull, true, cv::Scalar(0, 255, 0), 2);
+//    cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
 
-    delete blank_mask_ptr;
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(*mask_ptr,contours,cv::RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-    delete mask_ptr;
 
-    for (auto &contour : contours)
-    {
-        std::vector<cv::Point2i> hull;
-        cv::convexHull(contour, hull, true);
-        resultVisualizaion(hull);
-    }
+//    auto * mask_ptr=new cv::Mat();
+//    cv::bitwise_and(*mor_ptr,*blank_mask_ptr,*mask_ptr);
+//    cv::bitwise_xor(*blank_mask_ptr,*mask_ptr,*mask_ptr);
+//    if (color) masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *mask_ptr).toImageMsg());
+//    else masked_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *mask_ptr).toImageMsg());
+//
+//    delete blank_mask_ptr;
+//    std::vector<std::vector<cv::Point>> contours;
+//    cv::findContours(*mask_ptr,contours,cv::RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
+//    delete mask_ptr;
+//
+//    for (auto &contour : contours)
+//    {
+//        std::vector<cv::Point2i> hull;
+//        cv::convexHull(contour, hull, true);
+//        resultVisualizaion(hull);
+//    }
 }
 
 
