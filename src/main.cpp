@@ -18,72 +18,72 @@ void Tag::onInit()
             0.     , 775.6586 , 386.23152,
             0.     ,   0.     ,   1.     );
 
-    cv::Mat temp_A=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/A.png",cv::IMREAD_GRAYSCALE);
-    cv::Mat temp_B=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/B.png",cv::IMREAD_GRAYSCALE);
-    cv::Mat temp_C=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/C.png",cv::IMREAD_GRAYSCALE);
-    cv::Mat temp_D=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/D.png",cv::IMREAD_GRAYSCALE);
-    cv::Mat temp_E=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/E.png",cv::IMREAD_GRAYSCALE);
-
-    cv::Mat binary_a,binary_b,binary_c,binary_d,binary_e;
-
-    cv::threshold(temp_A,binary_a,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-    cv::threshold(temp_B,binary_b,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-    cv::threshold(temp_C,binary_c,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-    cv::threshold(temp_D,binary_d,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-    cv::threshold(temp_E,binary_e,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-
-    std::vector<std::vector<cv::Point>> contours_a_vec;
-    std::vector<std::vector<cv::Point>> contours_b_vec;
-    std::vector<std::vector<cv::Point>> contours_c_vec;
-    std::vector<std::vector<cv::Point>> contours_d_vec;
-    std::vector<std::vector<cv::Point>> contours_e_vec;
-
-    std::vector<cv::Point> hull_a;
-    std::vector<cv::Point> hull_b;
-    std::vector<cv::Point> hull_c;
-    std::vector<cv::Point> hull_d;
-    std::vector<cv::Point> hull_e;
-
-    cv::findContours(binary_a,contours_a_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-    std::sort(contours_a_vec.begin(),contours_a_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_a_vec[1],hull_a, true);
-//    cv::polylines(temp_A,hull_a, true,cv::Scalar::all(0),3);
-    hull_a_=hull_a;
-
-    cv::findContours(binary_b,contours_b_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-    std::sort(contours_b_vec.begin(),contours_b_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_b_vec[1],hull_b, true);
-//    cv::polylines(temp_B,hull_b, true,cv::Scalar::all(0),3);
-
-    hull_b_=hull_b;
-
-    cv::findContours(binary_c,contours_c_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-    std::sort(contours_c_vec.begin(),contours_c_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_c_vec[1],hull_c, true);
-//    cv::polylines(temp_C,hull_c, true,cv::Scalar::all(0),3);
-
-    hull_c_=hull_c;
-
-    cv::findContours(binary_d,contours_d_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-    std::sort(contours_d_vec.begin(),contours_d_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_d_vec[1],hull_d, true);
-//    cv::polylines(temp_D,hull_d, true,cv::Scalar::all(0),3);
-
-    hull_d_=hull_d;
-
-    cv::findContours(binary_e,contours_e_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-    std::sort(contours_e_vec.begin(),contours_e_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-    cv::convexHull(contours_e_vec[1],hull_e, true);
-//    cv::polylines(temp_E,hull_e, true,cv::Scalar::all(0),3);
-    hull_e_=hull_e;
-//    cv::imshow("outputa",temp_A);
-//    cv::imshow("outputb",temp_B);
-//    cv::imshow("outputc",temp_C);
-//    cv::imshow("outputd",temp_D);
-//    cv::imshow("outpute",temp_E);
-//    cv::waitKey(0);
-//    cv::destroyAllWindows();
-    std::cout<<"temp init finished"<<std::endl;
+////    cv::Mat temp_A=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/A.png",cv::IMREAD_GRAYSCALE);
+////    cv::Mat temp_B=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/B.png",cv::IMREAD_GRAYSCALE);
+////    cv::Mat temp_C=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/C.png",cv::IMREAD_GRAYSCALE);
+////    cv::Mat temp_D=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/D.png",cv::IMREAD_GRAYSCALE);
+////    cv::Mat temp_E=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/E.png",cv::IMREAD_GRAYSCALE);
+//
+//    cv::Mat binary_a,binary_b,binary_c,binary_d,binary_e;
+//
+//    cv::threshold(temp_A,binary_a,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+//    cv::threshold(temp_B,binary_b,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+//    cv::threshold(temp_C,binary_c,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+//    cv::threshold(temp_D,binary_d,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+//    cv::threshold(temp_E,binary_e,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+//
+//    std::vector<std::vector<cv::Point>> contours_a_vec;
+//    std::vector<std::vector<cv::Point>> contours_b_vec;
+//    std::vector<std::vector<cv::Point>> contours_c_vec;
+//    std::vector<std::vector<cv::Point>> contours_d_vec;
+//    std::vector<std::vector<cv::Point>> contours_e_vec;
+//
+//    std::vector<cv::Point> hull_a;
+//    std::vector<cv::Point> hull_b;
+//    std::vector<cv::Point> hull_c;
+//    std::vector<cv::Point> hull_d;
+//    std::vector<cv::Point> hull_e;
+//
+//    cv::findContours(binary_a,contours_a_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
+//    std::sort(contours_a_vec.begin(),contours_a_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
+//    cv::convexHull(contours_a_vec[1],hull_a, true);
+////    cv::polylines(temp_A,hull_a, true,cv::Scalar::all(0),3);
+//    hull_a_=hull_a;
+//
+//    cv::findContours(binary_b,contours_b_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
+//    std::sort(contours_b_vec.begin(),contours_b_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
+//    cv::convexHull(contours_b_vec[1],hull_b, true);
+////    cv::polylines(temp_B,hull_b, true,cv::Scalar::all(0),3);
+//
+//    hull_b_=hull_b;
+//
+//    cv::findContours(binary_c,contours_c_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
+//    std::sort(contours_c_vec.begin(),contours_c_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
+//    cv::convexHull(contours_c_vec[1],hull_c, true);
+////    cv::polylines(temp_C,hull_c, true,cv::Scalar::all(0),3);
+//
+//    hull_c_=hull_c;
+//
+//    cv::findContours(binary_d,contours_d_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
+//    std::sort(contours_d_vec.begin(),contours_d_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
+//    cv::convexHull(contours_d_vec[1],hull_d, true);
+////    cv::polylines(temp_D,hull_d, true,cv::Scalar::all(0),3);
+//
+//    hull_d_=hull_d;
+//
+//    cv::findContours(binary_e,contours_e_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
+//    std::sort(contours_e_vec.begin(),contours_e_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
+//    cv::convexHull(contours_e_vec[1],hull_e, true);
+////    cv::polylines(temp_E,hull_e, true,cv::Scalar::all(0),3);
+//    hull_e_=hull_e;
+////    cv::imshow("outputa",temp_A);
+////    cv::imshow("outputb",temp_B);
+////    cv::imshow("outputc",temp_C);
+////    cv::imshow("outputd",temp_D);
+////    cv::imshow("outpute",temp_E);
+////    cv::waitKey(0);
+////    cv::destroyAllWindows();
+//    std::cout<<"temp init finished"<<std::endl;
 }
 
 
@@ -413,7 +413,6 @@ void Tag::imgProcess()
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "tag_detector_node");
-    ros::MultiThreadedSpinner spinner(2);
     Tag tag;
     tag.onInit();
     while (ros::ok())
