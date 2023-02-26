@@ -3,6 +3,8 @@
 void Tag::onInit()
 {
     img_subscriber_= nh_.subscribe("/stereo_inertial_publisher/color/image", 1, &Tag::receiveFromCam,this);
+    depth_subscriber_= nh_.subscribe("/stereo_inertial_publisher/stereo/depth", 1, &Tag::receiveFromDepthCam,this);
+//    points_subscriber_= nh_.subscribe("/stereo_inertial_publisher/stereo/points", 1, &Tag::receiveFromPoint,this);
     hsv_red_publisher_ = nh_.advertise<sensor_msgs::Image>("tag_red_hsv_publisher", 1);
     hsv_blue_publisher_ = nh_.advertise<sensor_msgs::Image>("tag_blue_hsv_publisher", 1);
     masked_red_publisher_ = nh_.advertise<sensor_msgs::Image>("tag_masked_red_publisher", 1);
@@ -10,6 +12,11 @@ void Tag::onInit()
     segmentation_publisher_ = nh_.advertise<sensor_msgs::Image>("tag_segmentation_publisher", 1);
     callback_ = boost::bind(&Tag::dynamicCallback, this, _1);
     server_.setCallback(callback_);
+
+    distortion_coefficients_ =(cv::Mat_<double>(1,5)<<-0.226600, 0.060101, -0.000846, 0.000819, 0.000000);
+    camera_matrix_=(cv::Mat_<double>(3,3)<<774.28829,   0.     , 636.65422,
+            0.     , 775.6586 , 386.23152,
+            0.     ,   0.     ,   1.     );
 
     cv::Mat temp_A=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/A.png",cv::IMREAD_GRAYSCALE);
     cv::Mat temp_B=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/B.png",cv::IMREAD_GRAYSCALE);
@@ -79,9 +86,23 @@ void Tag::onInit()
     std::cout<<"temp init finished"<<std::endl;
 }
 
+void Tag::receiveFromPoint(const sensor_msgs::PointCloud2ConstPtr &points)
+{
+    std::cout<<points->data.data()<<std::endl;
+}
+
+
+void Tag::receiveFromDepthCam(const sensor_msgs::ImageConstPtr &depth_image)
+{
+    depth_image_ = boost::make_shared<cv_bridge::CvImage>(*cv_bridge::toCvShare(depth_image, depth_image->encoding));
+    masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),depth_image_->encoding , depth_image_->image).toImageMsg());
+}
+
+
 void Tag::receiveFromCam(const sensor_msgs::ImageConstPtr& image)
 {
     cv_image_ = boost::make_shared<cv_bridge::CvImage>(*cv_bridge::toCvShare(image, image->encoding));
+
     imgProcess();
     segmentation_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),cv_image_->encoding , cv_image_->image).toImageMsg());
 //    getTemplateImg();
@@ -113,6 +134,7 @@ void Tag::dynamicCallback(tag_detector::dynamicConfig &config)
     moment_bias_=config.moment_bias;
     approx_epsilon_=config.approx_epsilon;
 }
+
 
 void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,double scale)
 {
@@ -183,10 +205,32 @@ void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,double scale)
     int cx = int(moment.m10 / moment.m00);
     int cy = int(moment.m01 / moment.m00);
     cv::Point2f centroid(cx, cy);
+    auto rect=cv::boundingRect(hull);
+    cv::Point2f  tr=cv::Point2f(rect.br().x,rect.tl().y);
+    cv::Point2f bl = cv::Point2f (rect.tl().x,rect.br().y);
+
+    std::vector<cv::Point3f> w_points_vec;
+    w_points_vec.push_back(cv::Point3f(-0.075,0.075,0));
+    w_points_vec.push_back(cv::Point3f(-0.075,-0.075,0));
+    w_points_vec.push_back(cv::Point3f(0.075,0.075,0));
+    w_points_vec.push_back(cv::Point3f(0.075,-0.075,0));
+    std::vector<cv::Point2f> p_points_vec;
+    p_points_vec.push_back(cv::Point2f (rect.tl().x,rect.tl().y));
+    p_points_vec.push_back(tr);
+    p_points_vec.push_back(bl);
+    p_points_vec.push_back(cv::Point2f (rect.br().x,rect.br().y));
+    cv::Mat rvec;
+    cv::Mat tvec;
+    cv::solvePnP(w_points_vec,p_points_vec,camera_matrix_,distortion_coefficients_,rvec,tvec,bool(),cv::SOLVEPNP_ITERATIVE);
     // centroid and polylines green
-    cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
+    cv::rectangle(cv_image_->image,rect,cv::Scalar(255,0,0),3);
+//    cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
     cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-    cv::putText(cv_image_->image,std::to_string(scale),centroid-cv::Point2f (10,10),1,3,cv::Scalar(0,255,255),3);
+//    cv::putText(cv_image_->image,std::to_string(scale),centroid-cv::Point2f (10,10),1,3,cv::Scalar(0,255,255),3);
+//    cv::putText(cv_image_->image,std::to_string(scale),centroid-cv::Point2f (10,10),1,3,cv::Scalar(0,255,255),3);
+    cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,0)),centroid-cv::Point2f (100,100),1,3,cv::Scalar(0,0,255),3);
+    cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,1)),centroid-cv::Point2f (50,50),1,3,cv::Scalar(0,0,255),3);
+    cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,2)),centroid-cv::Point2f (10,10),1,3,cv::Scalar(0,0,255),3);
 //    cv::putText(cv_image_->image,"A",centroid,1,3,cv::Scalar(0,255,255),3);
 
 
@@ -217,7 +261,11 @@ void Tag::contoursProcess(const cv::Mat *mor_ptr,int color)
     delete  hull_vec_ptr;
     delete contours_vec_ptr;
     auto rect =cv::boundingRect(max_area_hull);
-    cv::rectangle(cv_image_->image,rect,cv::Scalar(100,200,50),3);
+    rect.x=rect.x;
+    rect.y=rect.y;
+    rect.width=rect.width;
+    rect.height=rect.height;
+//    cv::rectangle(cv_image_->image,rect,cv::Scalar(100,200,50),3);
     auto * roi=new cv::Mat (*mor_ptr,rect);
 //    *mor_ptr(rect).copyTo(*roi);
     if(color) masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *roi).toImageMsg());
@@ -225,7 +273,6 @@ void Tag::contoursProcess(const cv::Mat *mor_ptr,int color)
     int white_area=cv::countNonZero(*roi);
     delete roi;
     double white_area_scale=white_area/cv::contourArea(max_area_hull) ;
-//    cv::fillConvexPoly(*blank_mask_ptr,max_area_hull,cv::Scalar(255));
 
     resultVisualizaion(max_area_hull,white_area_scale);
 //    auto moment = cv::moments(max_area_hull);
@@ -299,6 +346,7 @@ void Tag::imgProcess()
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "tag_detector_node");
+    ros::MultiThreadedSpinner spinner(2);
     Tag tag;
     tag.onInit();
     while (ros::ok())

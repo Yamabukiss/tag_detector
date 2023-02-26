@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sensor_msgs/Image.h"
+#include "sensor_msgs/PointCloud2.h"
 #include "std_msgs/String.h"
 #include "algorithm"
 #include "ros/ros.h"
@@ -23,7 +24,11 @@ class Tag
 public:
     void onInit();
     void dynamicCallback(tag_detector::dynamicConfig& config);
+
     void receiveFromCam(const sensor_msgs::ImageConstPtr &image);
+    void receiveFromDepthCam(const sensor_msgs::ImageConstPtr &image);
+    void receiveFromPoint(const sensor_msgs::PointCloud2ConstPtr &points);
+
     void imgProcess();
     void contoursProcess(const cv::Mat *mor_ptr,int color);
     void resultVisualizaion(const std::vector<cv::Point2i> &hull,double scale);
@@ -31,14 +36,22 @@ public:
 
     ros::NodeHandle nh_;
     ros::Subscriber img_subscriber_;
+    ros::Subscriber depth_subscriber_;
+    ros::Subscriber points_subscriber_;
+
     ros::Publisher hsv_red_publisher_;
     ros::Publisher hsv_blue_publisher_;
     ros::Publisher masked_red_publisher_;
     ros::Publisher masked_blue_publisher_;
     ros::Publisher segmentation_publisher_;
+
     dynamic_reconfigure::Server<tag_detector::dynamicConfig> server_;
     dynamic_reconfigure::Server<tag_detector::dynamicConfig>::CallbackType callback_;
     cv_bridge::CvImagePtr cv_image_;
+    cv_bridge::CvImagePtr depth_image_;
+
+    cv::Mat distortion_coefficients_;
+    cv::Mat camera_matrix_;
 
     int morph_type_;
     int morph_iterations_;
