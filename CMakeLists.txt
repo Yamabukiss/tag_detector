@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
         dynamic_reconfigure
         tf
         message_generation
+        geometry_msgs
         )
 
 find_package(OpenCV REQUIRED)
@@ -23,11 +24,12 @@ generate_dynamic_reconfigure_options(
 
 generate_messages(DEPENDENCIES
         std_msgs
+        geometry_msgs
         )
 
 catkin_package(
         INCLUDE_DIRS include
-        CATKIN_DEPENDS roscpp cv_bridge dynamic_reconfigure nodelet message_runtime
+        CATKIN_DEPENDS roscpp cv_bridge dynamic_reconfigure nodelet message_runtime geometry_msgs
         LIBRARIES ${PROJECT_NAME}
 )
 

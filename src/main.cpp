@@ -113,14 +113,14 @@ void Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,co
     tag_msg.color=color;
     tag_msg.letter=signal;
 
-    tag_msg.q_x=quaternion.x();
-    tag_msg.q_y=quaternion.y();
-    tag_msg.q_z=quaternion.z();
-    tag_msg.q_w=quaternion.w();
+    tag_msg.pose.orientation.x=quaternion.x();
+    tag_msg.pose.orientation.y=quaternion.y();
+    tag_msg.pose.orientation.z=quaternion.z();
+    tag_msg.pose.orientation.w=quaternion.w();
 
-    tag_msg.t_x=tvec.at<double>(0,0);
-    tag_msg.t_y=tvec.at<double>(0,1);
-    tag_msg.t_z=tvec.at<double>(0,2);
+    tag_msg.pose.position.x=tvec.at<double>(0,0);
+    tag_msg.pose.position.y=tvec.at<double>(0,1);
+    tag_msg.pose.position.z=tvec.at<double>(0,2);
 
     pnp_publisher_.publish(tag_msg);
     tf::Transform transform;

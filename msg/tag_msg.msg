@@ -1,9 +1,3 @@
 uint8 color
 uint8 letter
-float64 q_x
-float64 q_y
-float64 q_z
-float64 q_w
-float64 t_x
-float64 t_y
-float64 t_z
+geometry_msgs/Pose pose
