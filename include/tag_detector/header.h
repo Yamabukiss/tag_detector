@@ -29,9 +29,9 @@ public:
     void receiveFromCam(const sensor_msgs::ImageConstPtr &image);
     void imgProcess();
     void contoursProcess(const cv::Mat *mor_ptr,int color);
-    void resultVisualizaion(const std::vector<cv::Point2i> &hull,double scale);
+    void resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal);
     void pubMessage(const cv::Mat &rvec,const cv::Mat &tvec);
-
+    int recognizeLetter(const cv::Mat * reverse_mask_ptr);
     ros::NodeHandle nh_;
     ros::Subscriber img_subscriber_;
     ros::Subscriber depth_subscriber_;
@@ -51,7 +51,11 @@ public:
 
     cv::Mat distortion_coefficients_;
     cv::Mat camera_matrix_;
-
+    cv::Mat binary_a_;
+    cv::Mat binary_b_;
+    cv::Mat binary_c_;
+    cv::Mat binary_d_;
+    cv::Mat binary_e_;
     int morph_type_;
     int morph_iterations_;
     int morph_size_;
@@ -69,11 +73,5 @@ public:
     int upper_blue_hsv_h_;
     int upper_blue_hsv_s_;
     int upper_blue_hsv_v_;
-
-    std::vector<cv::Point> hull_a_;
-    std::vector<cv::Point> hull_b_;
-    std::vector<cv::Point> hull_c_;
-    std::vector<cv::Point> hull_d_;
-    std::vector<cv::Point> hull_e_;
 
 };

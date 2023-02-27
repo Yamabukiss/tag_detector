@@ -13,77 +13,45 @@ void Tag::onInit()
     callback_ = boost::bind(&Tag::dynamicCallback, this, _1);
     server_.setCallback(callback_);
 
-    distortion_coefficients_ = (cv::Mat_<double>(1,5)<<-0.226600, 0.060101, -0.000846, 0.000819, 0.000000);
-    camera_matrix_ = (cv::Mat_<double>(3,3)<<774.28829,   0.     , 636.65422,
-            0.     , 775.6586 , 386.23152,
-            0.     ,   0.     ,   1.     );
+    distortion_coefficients_ = (cv::Mat_<double>(1,5)<<-0.228270, 0.063140, 0.002289, -0.000506, 0.000000);
+    camera_matrix_ = (cv::Mat_<double>(3,3)<<773.90787,   0.     , 635.16925,
+            0.     , 774.67309, 366.48879,
+            0.     ,   0.     ,   1. );
 
-////    cv::Mat temp_A=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/A.png",cv::IMREAD_GRAYSCALE);
-////    cv::Mat temp_B=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/B.png",cv::IMREAD_GRAYSCALE);
-////    cv::Mat temp_C=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/C.png",cv::IMREAD_GRAYSCALE);
-////    cv::Mat temp_D=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/D.png",cv::IMREAD_GRAYSCALE);
-////    cv::Mat temp_E=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/E.png",cv::IMREAD_GRAYSCALE);
-//
-//    cv::Mat binary_a,binary_b,binary_c,binary_d,binary_e;
-//
-//    cv::threshold(temp_A,binary_a,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-//    cv::threshold(temp_B,binary_b,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-//    cv::threshold(temp_C,binary_c,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-//    cv::threshold(temp_D,binary_d,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-//    cv::threshold(temp_E,binary_e,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-//
-//    std::vector<std::vector<cv::Point>> contours_a_vec;
-//    std::vector<std::vector<cv::Point>> contours_b_vec;
-//    std::vector<std::vector<cv::Point>> contours_c_vec;
-//    std::vector<std::vector<cv::Point>> contours_d_vec;
-//    std::vector<std::vector<cv::Point>> contours_e_vec;
-//
-//    std::vector<cv::Point> hull_a;
-//    std::vector<cv::Point> hull_b;
-//    std::vector<cv::Point> hull_c;
-//    std::vector<cv::Point> hull_d;
-//    std::vector<cv::Point> hull_e;
-//
-//    cv::findContours(binary_a,contours_a_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-//    std::sort(contours_a_vec.begin(),contours_a_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-//    cv::convexHull(contours_a_vec[1],hull_a, true);
-////    cv::polylines(temp_A,hull_a, true,cv::Scalar::all(0),3);
-//    hull_a_=hull_a;
-//
-//    cv::findContours(binary_b,contours_b_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-//    std::sort(contours_b_vec.begin(),contours_b_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-//    cv::convexHull(contours_b_vec[1],hull_b, true);
-////    cv::polylines(temp_B,hull_b, true,cv::Scalar::all(0),3);
-//
-//    hull_b_=hull_b;
-//
-//    cv::findContours(binary_c,contours_c_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-//    std::sort(contours_c_vec.begin(),contours_c_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-//    cv::convexHull(contours_c_vec[1],hull_c, true);
-////    cv::polylines(temp_C,hull_c, true,cv::Scalar::all(0),3);
-//
-//    hull_c_=hull_c;
-//
-//    cv::findContours(binary_d,contours_d_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-//    std::sort(contours_d_vec.begin(),contours_d_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-//    cv::convexHull(contours_d_vec[1],hull_d, true);
-////    cv::polylines(temp_D,hull_d, true,cv::Scalar::all(0),3);
-//
-//    hull_d_=hull_d;
-//
-//    cv::findContours(binary_e,contours_e_vec,cv::RETR_TREE,CV_CHAIN_APPROX_SIMPLE);
-//    std::sort(contours_e_vec.begin(),contours_e_vec.end(),[](const std::vector<cv::Point>& contour1,const std::vector<cv::Point>& contour2){return contour1.size()>contour2.size();});
-//    cv::convexHull(contours_e_vec[1],hull_e, true);
-////    cv::polylines(temp_E,hull_e, true,cv::Scalar::all(0),3);
-//    hull_e_=hull_e;
-////    cv::imshow("outputa",temp_A);
-////    cv::imshow("outputb",temp_B);
-////    cv::imshow("outputc",temp_C);
-////    cv::imshow("outputd",temp_D);
-////    cv::imshow("outpute",temp_E);
-////    cv::waitKey(0);
-////    cv::destroyAllWindows();
-//    std::cout<<"temp init finished"<<std::endl;
+    cv::Mat temp_A=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/A.png",cv::IMREAD_GRAYSCALE);
+    cv::Mat temp_B=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/B.png",cv::IMREAD_GRAYSCALE);
+    cv::Mat temp_C=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/C.png",cv::IMREAD_GRAYSCALE);
+    cv::Mat temp_D=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/D.png",cv::IMREAD_GRAYSCALE);
+    cv::Mat temp_E=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/E.png",cv::IMREAD_GRAYSCALE);
+
+    cv::Mat binary_a,binary_b,binary_c,binary_d,binary_e;
+
+    cv::threshold(temp_A,binary_a,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+    cv::threshold(temp_B,binary_b,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+    cv::threshold(temp_C,binary_c,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+    cv::threshold(temp_D,binary_d,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+    cv::threshold(temp_E,binary_e,0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+
+    cv::resize(binary_a,binary_a,cv::Size(80,80),0,0,cv::INTER_NEAREST);
+    cv::resize(binary_b,binary_b,cv::Size(80,80),0,0,cv::INTER_NEAREST);
+    cv::resize(binary_c,binary_c,cv::Size(80,80),0,0,cv::INTER_NEAREST);
+    cv::resize(binary_d,binary_d,cv::Size(80,80),0,0,cv::INTER_NEAREST);
+    cv::resize(binary_e,binary_e,cv::Size(80,80),0,0,cv::INTER_NEAREST);
+
+    binary_a_=binary_a;
+    binary_b_=binary_b;
+    binary_c_=binary_c;
+    binary_d_=binary_d;
+    binary_e_=binary_e;
+
+//    cv::imshow("outputa",binary_a);
+//    cv::imshow("outputb",binary_b);
+//    cv::imshow("outputc",binary_c);
+//    cv::imshow("outputd",binary_d);
+//    cv::imshow("outpute",binary_e);
+//    cv::waitKey(0);
+//    cv::destroyAllWindows();
+    std::cout<<"temp init finished"<<std::endl;
 }
 
 
@@ -160,97 +128,13 @@ void Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec)
     broadcaster.sendTransform(stamped_Transfor);
 }
 
-
-void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,double scale)
+void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal)
 {
-//    if (cv::matchShapes(hull,hull_a_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,std::to_string(scale),centroid-cv::Point2f (10,10),1,3,cv::Scalar(0,255,255),3);
-//        cv::putText(cv_image_->image,"A",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-//    else if (cv::matchShapes(hull,hull_b_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,"B",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-//    else if (cv::matchShapes(hull,hull_c_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,"C",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-//    else if (cv::matchShapes(hull,hull_d_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,"D",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-//    else if (cv::matchShapes(hull,hull_e_,cv::CONTOURS_MATCH_I2,0)<=moment_bias_)
-//    {
-//        auto moment = cv::moments(hull);
-//        //centriod
-//        int cx = int(moment.m10 / moment.m00);
-//        int cy = int(moment.m01 / moment.m00);
-//        cv::Point2f centroid(cx, cy);
-//        // centroid and polylines green
-//        cv::polylines(cv_image_->image, hull, true, cv::Scalar(0, 255, 0), 2);
-//        cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
-//        cv::putText(cv_image_->image,"E",centroid,1,3,cv::Scalar(0,255,255),3);
-//    }
-//    else std::cout<<"matches fail"<<std::endl;
     auto moment = cv::moments(hull);
-    //centriod
     int cx = int(moment.m10 / moment.m00);
     int cy = int(moment.m01 / moment.m00);
     cv::Point2f centroid(cx, cy);
 
-    auto rotate_rect=cv::minAreaRect(hull);
-    cv::Point2f vertex[4];
-    rotate_rect.points(vertex);
-
-    int angle;
-    cv::Mat rotate_points;
-    cv::boxPoints(rotate_rect,rotate_points);
-    if (rotate_rect.size.width <= rotate_rect.size.height)
-    {
-        angle = rotate_rect.angle + 90;
-        int tm = rotate_rect.size.width;
-        rotate_rect.size.width = rotate_rect.size.height;
-        rotate_rect.size.height = tm;
-    }
-    else
-    {
-        angle = rotate_rect.angle;
-    }
-    cv::putText(cv_image_->image,std::to_string(angle),rotate_rect.center,1,3,cv::Scalar(0,255,0),3);
 
     if(angle<=0)
     {
@@ -271,9 +155,11 @@ void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,double scale)
         cv::solvePnP(w_points_vec,p_points_vec,camera_matrix_,distortion_coefficients_,rvec,tvec,bool(),cv::SOLVEPNP_ITERATIVE);
         pubMessage(rvec,tvec);
         cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
+        cv::putText(cv_image_->image,std::to_string(signal),centroid,1,3,cv::Scalar(255,0,0),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,0)),centroid-cv::Point2f (100,100),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,1)),centroid-cv::Point2f (50,50),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,2)),centroid-cv::Point2f (10,10),1,3,cv::Scalar(0,0,255),3);
+        cv::putText(cv_image_->image,std::to_string(angle),centroid+cv::Point2f (50,50),1,3,cv::Scalar(255,0,255),3);
     }
 
     else
@@ -295,82 +181,100 @@ void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,double scale)
         cv::solvePnP(w_points_vec,p_points_vec,camera_matrix_,distortion_coefficients_,rvec,tvec,bool(),cv::SOLVEPNP_ITERATIVE);
         pubMessage(rvec,tvec);
         cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
+        cv::putText(cv_image_->image,std::to_string(signal),centroid,1,3,cv::Scalar(255,0,0),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,0)),centroid-cv::Point2f (100,100),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,1)),centroid-cv::Point2f (50,50),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,2)),centroid-cv::Point2f (10,10),1,3,cv::Scalar(0,0,255),3);
+        cv::putText(cv_image_->image,std::to_string(angle),centroid+cv::Point2f (50,50),1,3,cv::Scalar(255,0,255),3);
+
     }
 
 }
 
-
-void Tag::contoursProcess(const cv::Mat *mor_ptr,int color)
+int Tag::recognizeLetter(const cv::Mat * reverse_mask_ptr)
 {
-    auto * contours_vec_ptr = new std::vector<std::vector<cv::Point>> ();
-    cv::findContours(*mor_ptr,*contours_vec_ptr,cv::RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-    auto * blank_mask_ptr= new cv::Mat();
-    *blank_mask_ptr=cv::Mat::zeros(cv_image_->image.rows,cv_image_->image.cols,CV_8UC1);
-    auto * hull_vec_ptr = new std::vector<std::vector<cv::Point2i>> ();
-    for (auto &contours : *contours_vec_ptr)
-    {
+    std::vector<std::pair<int,int>> similar_value_vec;
+    cv::Mat tmp_a,tmp_b,tmp_c,tmp_d,tmp_e;
+    cv::bitwise_xor(*reverse_mask_ptr,binary_a_,tmp_a);
+    cv::bitwise_xor(*reverse_mask_ptr,binary_b_,tmp_b);
+    cv::bitwise_xor(*reverse_mask_ptr,binary_c_,tmp_c);
+    cv::bitwise_xor(*reverse_mask_ptr,binary_d_,tmp_d);
+    cv::bitwise_xor(*reverse_mask_ptr,binary_e_,tmp_e);
+
+    similar_value_vec.emplace_back(std::make_pair(0,cv::countNonZero(tmp_a)));
+    similar_value_vec.emplace_back(std::make_pair(1,cv::countNonZero(tmp_b)));
+    similar_value_vec.emplace_back(std::make_pair(2,cv::countNonZero(tmp_c)));
+    similar_value_vec.emplace_back(std::make_pair(3,cv::countNonZero(tmp_d)));
+    similar_value_vec.emplace_back(std::make_pair(4,cv::countNonZero(tmp_e)));
+
+    std::sort(similar_value_vec.begin(),similar_value_vec.end(),[](std::pair<int,int> val1, std::pair<int,int> val2){return val1.second<val2.second;});
+
+    return similar_value_vec[0].first;
+}
+
+
+
+void Tag::contoursProcess(const cv::Mat *mor_ptr,int color) {
+    auto *contours_vec_ptr = new std::vector<std::vector<cv::Point>>();
+    cv::findContours(*mor_ptr, *contours_vec_ptr, cv::RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    auto *hull_vec_ptr = new std::vector<std::vector<cv::Point2i>>();
+    for (auto &contours: *contours_vec_ptr) {
         std::vector<cv::Point2i> hull;
         cv::convexHull(contours, hull, true);
         hull_vec_ptr->emplace_back(hull);
     }
-    std::sort(hull_vec_ptr->begin(),hull_vec_ptr->end(),[](const std::vector<cv::Point2i> &hull1,const std::vector<cv::Point2i> &hull2){return cv::contourArea(hull1) > cv::contourArea(hull2);});
+    std::sort(hull_vec_ptr->begin(), hull_vec_ptr->end(),
+              [](const std::vector<cv::Point2i> &hull1, const std::vector<cv::Point2i> &hull2) {
+                  return cv::contourArea(hull1) > cv::contourArea(hull2);
+              });
 
-    if (hull_vec_ptr->empty())
-    {
-        std::cout<<"can not find mineral in this frame"<<std::endl;
+    if (hull_vec_ptr->empty()) {
+        std::cout << "can not find mineral in this frame" << std::endl;
         return;
     }
 
-    auto max_area_hull=hull_vec_ptr[0][0];
-    delete  hull_vec_ptr;
+    auto max_area_hull = hull_vec_ptr[0][0];
+    delete hull_vec_ptr;
     delete contours_vec_ptr;
-    auto rect =cv::boundingRect(max_area_hull);
-    rect.x=rect.x;
-    rect.y=rect.y;
-    rect.width=rect.width;
-    rect.height=rect.height;
-//    cv::rectangle(cv_image_->image,rect,cv::Scalar(100,200,50),3);
-    auto * roi=new cv::Mat (*mor_ptr,rect);
-//    *mor_ptr(rect).copyTo(*roi);
-    if(color) masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *roi).toImageMsg());
-    else     masked_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *roi).toImageMsg());
-    int white_area=cv::countNonZero(*roi);
-    delete roi;
-    double white_area_scale=white_area/cv::contourArea(max_area_hull) ;
 
-    resultVisualizaion(max_area_hull,white_area_scale);
-//    auto moment = cv::moments(max_area_hull);
-//    //centriod
-//    int cx = int(moment.m10 / moment.m00);
-//    int cy = int(moment.m01 / moment.m00);
-//    cv::Point2f centroid(cx, cy);
-//    // centroid and polylines green
-//    cv::polylines(cv_image_->image, max_area_hull, true, cv::Scalar(0, 255, 0), 2);
-//    cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
+    auto rotate_rect = cv::minAreaRect(max_area_hull);
+    cv::Point2f vertex[4];
+    rotate_rect.points(vertex);
 
 
-//    auto * mask_ptr=new cv::Mat();
-//    cv::bitwise_and(*mor_ptr,*blank_mask_ptr,*mask_ptr);
-//    cv::bitwise_xor(*blank_mask_ptr,*mask_ptr,*mask_ptr);
-//    if (color) masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *mask_ptr).toImageMsg());
-//    else masked_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *mask_ptr).toImageMsg());
-//
-//    delete blank_mask_ptr;
-//    std::vector<std::vector<cv::Point>> contours;
-//    cv::findContours(*mask_ptr,contours,cv::RETR_EXTERNAL,CV_CHAIN_APPROX_SIMPLE);
-//    delete mask_ptr;
-//
-//    for (auto &contour : contours)
-//    {
-//        std::vector<cv::Point2i> hull;
-//        cv::convexHull(contour, hull, true);
-//        resultVisualizaion(hull);
-//    }
+    int angle;
+    if (rotate_rect.size.width <= rotate_rect.size.height) {
+        angle = rotate_rect.angle + 90;
+        int tm = rotate_rect.size.width;
+        rotate_rect.size.width = rotate_rect.size.height;
+        rotate_rect.size.height = tm;
+    } else {
+        angle = rotate_rect.angle;
+    }
+
+
+    auto trans_matrix = cv::getRotationMatrix2D(rotate_rect.center, angle, 1);
+    auto *mask = new cv::Mat();
+    auto *reverse_mask = new cv::Mat();
+    auto *warp_result = new cv::Mat();
+    cv::warpAffine(*mor_ptr, *warp_result, trans_matrix, cv::Size(mor_ptr->cols, mor_ptr->rows));
+    cv::getRectSubPix(*warp_result, rotate_rect.size, rotate_rect.center, *mask);
+    delete warp_result;
+    cv::bitwise_not(*mask, *reverse_mask);
+    delete mask;
+    if(reverse_mask->data == nullptr)
+    {
+        std::cout<<"wrong object,return now"<<std::endl;
+        return;
+    }
+    cv::resize(*reverse_mask,*reverse_mask,cv::Size(80,80),0,0,cv::INTER_NEAREST);
+    if (color)
+        masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(), "mono8", *reverse_mask).toImageMsg());
+    else masked_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(), "mono8", *reverse_mask).toImageMsg());
+    int signal=recognizeLetter(reverse_mask);
+    delete reverse_mask;
+    resultVisualizaion(max_area_hull,vertex,angle,signal);
 }
-
 
 
 void Tag::imgProcess()
