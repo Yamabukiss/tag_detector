@@ -3,7 +3,7 @@
 void Tag::onInit()
 {
     img_subscriber_= nh_.subscribe("/stereo_inertial_publisher/color/image", 1, &Tag::receiveFromCam,this);
-    pnp_publisher_ = nh_.advertise<geometry_msgs::PoseStamped>("tag_pnp_publisher", 1);
+    pnp_publisher_ = nh_.advertise<tag_detector::tag_msg>("tag_pnp_publisher", 1);
 
     hsv_red_publisher_ = nh_.advertise<sensor_msgs::Image>("tag_red_hsv_publisher", 1);
     hsv_blue_publisher_ = nh_.advertise<sensor_msgs::Image>("tag_blue_hsv_publisher", 1);
@@ -89,7 +89,7 @@ void Tag::dynamicCallback(tag_detector::dynamicConfig &config)
     morph_size_=config.morph_size;
 }
 
-void Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec)
+void Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,const int color)
 {
 //    cv::Mat rotate_mat;
 //    cv::Rodrigues(rvec, rotate_mat);
@@ -107,19 +107,22 @@ void Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec)
     double r;
     double p;
     double y;
-    static geometry_msgs::PoseStamped pose_stamped;
+    static tag_detector::tag_msg tag_msg;
     tf_rotate_matrix.getRPY(r, p, y);
     quaternion.setRPY(y, p, r);
+    tag_msg.color=color;
+    tag_msg.letter=signal;
 
-    pose_stamped.pose.position.x=tvec.at<double>(0,0);
-    pose_stamped.pose.position.y=tvec.at<double>(0,1);
-    pose_stamped.pose.position.z=tvec.at<double>(0,2);
-    pose_stamped.pose.orientation.w=quaternion.w();
-    pose_stamped.pose.orientation.x=quaternion.x();
-    pose_stamped.pose.orientation.y=quaternion.y();
-    pose_stamped.pose.orientation.z=quaternion.z();
+    tag_msg.q_x=quaternion.x();
+    tag_msg.q_y=quaternion.y();
+    tag_msg.q_z=quaternion.z();
+    tag_msg.q_w=quaternion.w();
 
-    pnp_publisher_.publish(pose_stamped);
+    tag_msg.t_x=tvec.at<double>(0,0);
+    tag_msg.t_y=tvec.at<double>(0,1);
+    tag_msg.t_z=tvec.at<double>(0,2);
+
+    pnp_publisher_.publish(tag_msg);
     tf::Transform transform;
     transform.setRotation(quaternion);
     transform.setOrigin(tf_tvec);
@@ -128,7 +131,7 @@ void Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec)
     broadcaster.sendTransform(stamped_Transfor);
 }
 
-void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal)
+void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal,const int color)
 {
     auto moment = cv::moments(hull);
     int cx = int(moment.m10 / moment.m00);
@@ -153,7 +156,7 @@ void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Poin
         cv::Mat rvec;
         cv::Mat tvec;
         cv::solvePnP(w_points_vec,p_points_vec,camera_matrix_,distortion_coefficients_,rvec,tvec,bool(),cv::SOLVEPNP_ITERATIVE);
-        pubMessage(rvec,tvec);
+        pubMessage(rvec,tvec,signal,color);
         cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
         cv::putText(cv_image_->image,std::to_string(signal),centroid,1,3,cv::Scalar(255,0,0),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,0)),centroid-cv::Point2f (100,100),1,3,cv::Scalar(0,0,255),3);
@@ -179,7 +182,7 @@ void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Poin
         cv::Mat rvec;
         cv::Mat tvec;
         cv::solvePnP(w_points_vec,p_points_vec,camera_matrix_,distortion_coefficients_,rvec,tvec,bool(),cv::SOLVEPNP_ITERATIVE);
-        pubMessage(rvec,tvec);
+        pubMessage(rvec,tvec,signal,color);
         cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
         cv::putText(cv_image_->image,std::to_string(signal),centroid,1,3,cv::Scalar(255,0,0),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,0)),centroid-cv::Point2f (100,100),1,3,cv::Scalar(0,0,255),3);
@@ -262,7 +265,7 @@ void Tag::contoursProcess(const cv::Mat *mor_ptr,int color) {
     delete warp_result;
     cv::bitwise_not(*mask, *reverse_mask);
     delete mask;
-    if(reverse_mask->data == nullptr)
+    if(reverse_mask->data == nullptr || (cv::countNonZero(*reverse_mask)/reverse_mask->rows*reverse_mask->cols)<=0.3)
     {
         std::cout<<"wrong object,return now"<<std::endl;
         return;
@@ -273,7 +276,7 @@ void Tag::contoursProcess(const cv::Mat *mor_ptr,int color) {
     else masked_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(), "mono8", *reverse_mask).toImageMsg());
     int signal=recognizeLetter(reverse_mask);
     delete reverse_mask;
-    resultVisualizaion(max_area_hull,vertex,angle,signal);
+    resultVisualizaion(max_area_hull,vertex,angle,signal,color);
 }
 
 
@@ -306,7 +309,7 @@ void Tag::imgProcess()
     hsv_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *mor_blue_ptr).toImageMsg());
 
     contoursProcess(mor_red_ptr,1);
-//    contoursProcess(mor_blue_ptr,0);
+    contoursProcess(mor_blue_ptr,0);
 
     delete mor_red_ptr;
     delete mor_blue_ptr;

@@ -8,17 +8,26 @@ find_package(catkin REQUIRED COMPONENTS
         pluginlib
         dynamic_reconfigure
         tf
+        message_generation
         )
 
 find_package(OpenCV REQUIRED)
+
+add_message_files(FILES
+        tag_msg.msg
+        )
 
 generate_dynamic_reconfigure_options(
         cfg/dynamic.cfg
 )
 
+generate_messages(DEPENDENCIES
+        std_msgs
+        )
+
 catkin_package(
         INCLUDE_DIRS include
-        CATKIN_DEPENDS roscpp cv_bridge dynamic_reconfigure nodelet
+        CATKIN_DEPENDS roscpp cv_bridge dynamic_reconfigure nodelet message_runtime
         LIBRARIES ${PROJECT_NAME}
 )
 
@@ -27,7 +36,7 @@ include_directories(
 )
 
 add_executable(${PROJECT_NAME} src/main.cpp include/tag_detector/header.h)
-
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg)
 #add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
