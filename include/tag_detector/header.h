@@ -30,7 +30,7 @@ public:
     tag_detector::TagMsgArray contoursProcess(const cv::Mat *mor_ptr,int color);
     tag_detector::TagMsg resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal,const int color);
     tag_detector::TagMsg pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,const int color);
-    int recognizeLetter(const cv::Mat * reverse_mask_ptr);
+    int recognizeLetter(const cv::Mat  &reverse_mask_ptr);
     ros::NodeHandle nh_;
     ros::Subscriber img_subscriber_;
     ros::Subscriber depth_subscriber_;

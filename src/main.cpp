@@ -197,15 +197,15 @@ tag_detector::TagMsg Tag::resultVisualizaion(const std::vector<cv::Point2i> &hul
 
 }
 
-int Tag::recognizeLetter(const cv::Mat * reverse_mask_ptr)
+int Tag::recognizeLetter(const cv::Mat  &reverse_mask_ptr)
 {
     std::vector<std::pair<int,int>> similar_value_vec;
     cv::Mat tmp_a,tmp_b,tmp_c,tmp_d,tmp_e;
-    cv::bitwise_xor(*reverse_mask_ptr,binary_a_,tmp_a);
-    cv::bitwise_xor(*reverse_mask_ptr,binary_b_,tmp_b);
-    cv::bitwise_xor(*reverse_mask_ptr,binary_c_,tmp_c);
-    cv::bitwise_xor(*reverse_mask_ptr,binary_d_,tmp_d);
-    cv::bitwise_xor(*reverse_mask_ptr,binary_e_,tmp_e);
+    cv::bitwise_xor(reverse_mask_ptr,binary_a_,tmp_a);
+    cv::bitwise_xor(reverse_mask_ptr,binary_b_,tmp_b);
+    cv::bitwise_xor(reverse_mask_ptr,binary_c_,tmp_c);
+    cv::bitwise_xor(reverse_mask_ptr,binary_d_,tmp_d);
+    cv::bitwise_xor(reverse_mask_ptr,binary_e_,tmp_e);
 
     similar_value_vec.emplace_back(std::make_pair(0,cv::countNonZero(tmp_a)));
     similar_value_vec.emplace_back(std::make_pair(1,cv::countNonZero(tmp_b)));
@@ -214,7 +214,7 @@ int Tag::recognizeLetter(const cv::Mat * reverse_mask_ptr)
     similar_value_vec.emplace_back(std::make_pair(4,cv::countNonZero(tmp_e)));
 
     std::sort(similar_value_vec.begin(),similar_value_vec.end(),[](std::pair<int,int> val1, std::pair<int,int> val2){return val1.second<val2.second;});
-    if ((similar_value_vec[0].second/(reverse_mask_ptr->rows*reverse_mask_ptr->cols))>=area_scale_)
+    if ((similar_value_vec[0].second/(reverse_mask_ptr.rows*reverse_mask_ptr.cols))>=area_scale_)
     {
         return 6;
     }
@@ -247,10 +247,18 @@ tag_detector::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr,int color)
     {
         
     auto hull = hull_vec[i];
-    auto * approx_points=new std::vector<cv::Point2f> ();
+    std::vector<cv::Point2f> approx_points;
 
-    cv::approxPolyDP(hull,*approx_points,epsilon_, true);
-    for(const auto& approx_point : *approx_points) cv::circle(cv_image_->image,approx_point,8,cv::Scalar(255,0,255),3);
+    cv::approxPolyDP(hull,approx_points,epsilon_, true);
+    if(approx_points.size()!=4)
+    {
+        tag_detector::TagMsg tmp_tag_msg;
+        tmp_tag_msg.letter=6;
+        tag_msg_array.tag_msgs_array.push_back(tmp_tag_msg);
+        std::cout<<"wrong object"<<std::endl;
+        continue;
+    }
+    for(const auto& approx_point : approx_points) cv::circle(cv_image_->image,approx_point,8,cv::Scalar(255,0,255),3);
 
     auto rotate_rect = cv::minAreaRect(hull);
     cv::Point2f vertex[4];
@@ -270,29 +278,26 @@ tag_detector::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr,int color)
 
 
     auto trans_matrix = cv::getRotationMatrix2D(rotate_rect.center, angle, 1);
-    auto *mask = new cv::Mat();
-    auto *reverse_mask = new cv::Mat();
+    auto * mask = new cv::Mat ();
+    cv::Mat reverse_mask;
     auto *warp_result = new cv::Mat();
     cv::warpAffine(*mor_ptr, *warp_result, trans_matrix, cv::Size(mor_ptr->cols, mor_ptr->rows));
     cv::getRectSubPix(*warp_result, rotate_rect.size, rotate_rect.center, *mask);
     delete warp_result;
-    cv::bitwise_not(*mask, *reverse_mask);
-    delete mask;
-    if( reverse_mask->data == nullptr  ||approx_points->size()!=4)
+    cv::bitwise_not(*mask, reverse_mask);
+    if( reverse_mask.data == nullptr)
     {
-        delete approx_points;
         tag_detector::TagMsg tmp_tag_msg;
         tmp_tag_msg.letter=6;
         tag_msg_array.tag_msgs_array.push_back(tmp_tag_msg);
+        std::cout<<"wrong object"<<std::endl;
         continue;
     }
-    delete approx_points;
-    cv::resize(*reverse_mask,*reverse_mask,cv::Size(80,80),0,0,cv::INTER_NEAREST);
+    cv::resize(reverse_mask,reverse_mask,cv::Size(80,80),0,0,cv::INTER_NEAREST);
     if (color)
-        masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(), "mono8", *reverse_mask).toImageMsg());
-    else masked_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(), "mono8", *reverse_mask).toImageMsg());
+        masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(), "mono8", reverse_mask).toImageMsg());
+    else masked_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(), "mono8", reverse_mask).toImageMsg());
     int signal=recognizeLetter(reverse_mask);
-    delete reverse_mask;
     auto tag_msg=resultVisualizaion(hull,vertex,angle,signal,color);
     tag_msg_array.tag_msgs_array.push_back(tag_msg);
     }
