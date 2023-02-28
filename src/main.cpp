@@ -3,7 +3,7 @@
 void Tag::onInit()
 {
     img_subscriber_= nh_.subscribe("/stereo_inertial_publisher/color/image", 1, &Tag::receiveFromCam,this);
-    pnp_publisher_ = nh_.advertise<tag_detector::tag_msg>("tag_pnp_publisher", 1);
+    pnp_publisher_ = nh_.advertise<tag_detector::TagMsgArray>("tag_pnp_publisher", 1);
 
     hsv_red_publisher_ = nh_.advertise<sensor_msgs::Image>("tag_red_hsv_publisher", 1);
     hsv_blue_publisher_ = nh_.advertise<sensor_msgs::Image>("tag_blue_hsv_publisher", 1);
@@ -87,9 +87,11 @@ void Tag::dynamicCallback(tag_detector::dynamicConfig &config)
     
 
     morph_size_=config.morph_size;
+    epsilon_=config.approx_epsilon;
+    area_scale_=config.area_scale;
 }
 
-void Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,const int color)
+tag_detector::TagMsg Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,const int color)
 {
 //    cv::Mat rotate_mat;
 //    cv::Rodrigues(rvec, rotate_mat);
@@ -107,7 +109,7 @@ void Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,co
     double r;
     double p;
     double y;
-    static tag_detector::tag_msg tag_msg;
+    tag_detector::TagMsg tag_msg;
     tf_rotate_matrix.getRPY(r, p, y);
     quaternion.setRPY(y, p, r);
     tag_msg.color=color;
@@ -122,16 +124,16 @@ void Tag::pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,co
     tag_msg.pose.position.y=tvec.at<double>(0,1);
     tag_msg.pose.position.z=tvec.at<double>(0,2);
 
-    pnp_publisher_.publish(tag_msg);
     tf::Transform transform;
     transform.setRotation(quaternion);
     transform.setOrigin(tf_tvec);
-    tf::StampedTransform stamped_Transfor(transform, ros::Time::now(), "oak_rgb_camera_optical_frame","tag");
+    tf::StampedTransform stamped_Transfor(transform, ros::Time::now(), "oak_rgb_camera_optical_frame",std::to_string(color)+" tag "+std::to_string(signal));
     static tf::TransformBroadcaster broadcaster;
     broadcaster.sendTransform(stamped_Transfor);
+    return tag_msg;
 }
 
-void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal,const int color)
+tag_detector::TagMsg Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal,const int color)
 {
     auto moment = cv::moments(hull);
     int cx = int(moment.m10 / moment.m00);
@@ -156,13 +158,14 @@ void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Poin
         cv::Mat rvec;
         cv::Mat tvec;
         cv::solvePnP(w_points_vec,p_points_vec,camera_matrix_,distortion_coefficients_,rvec,tvec,bool(),cv::SOLVEPNP_ITERATIVE);
-        pubMessage(rvec,tvec,signal,color);
+        auto tag_msg=pubMessage(rvec,tvec,signal,color);
         cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
         cv::putText(cv_image_->image,std::to_string(signal),centroid,1,3,cv::Scalar(255,0,0),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,0)),centroid-cv::Point2f (100,100),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,1)),centroid-cv::Point2f (50,50),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,2)),centroid-cv::Point2f (10,10),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(angle),centroid+cv::Point2f (50,50),1,3,cv::Scalar(255,0,255),3);
+        return tag_msg;
     }
 
     else
@@ -182,14 +185,14 @@ void Tag::resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Poin
         cv::Mat rvec;
         cv::Mat tvec;
         cv::solvePnP(w_points_vec,p_points_vec,camera_matrix_,distortion_coefficients_,rvec,tvec,bool(),cv::SOLVEPNP_ITERATIVE);
-        pubMessage(rvec,tvec,signal,color);
+        auto tag_msg=pubMessage(rvec,tvec,signal,color);
         cv::circle(cv_image_->image, centroid, 2, cv::Scalar(0, 255, 0), 2);
         cv::putText(cv_image_->image,std::to_string(signal),centroid,1,3,cv::Scalar(255,0,0),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,0)),centroid-cv::Point2f (100,100),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,1)),centroid-cv::Point2f (50,50),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(tvec.at<double>(0,2)),centroid-cv::Point2f (10,10),1,3,cv::Scalar(0,0,255),3);
         cv::putText(cv_image_->image,std::to_string(angle),centroid+cv::Point2f (50,50),1,3,cv::Scalar(255,0,255),3);
-
+        return tag_msg;
     }
 
 }
@@ -211,42 +214,52 @@ int Tag::recognizeLetter(const cv::Mat * reverse_mask_ptr)
     similar_value_vec.emplace_back(std::make_pair(4,cv::countNonZero(tmp_e)));
 
     std::sort(similar_value_vec.begin(),similar_value_vec.end(),[](std::pair<int,int> val1, std::pair<int,int> val2){return val1.second<val2.second;});
-
+    if ((similar_value_vec[0].second/(reverse_mask_ptr->rows*reverse_mask_ptr->cols))>=area_scale_)
+    {
+        return 6;
+    }
     return similar_value_vec[0].first;
 }
 
 
 
-void Tag::contoursProcess(const cv::Mat *mor_ptr,int color) {
+tag_detector::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr,int color) {
     auto *contours_vec_ptr = new std::vector<std::vector<cv::Point>>();
     cv::findContours(*mor_ptr, *contours_vec_ptr, cv::RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-    auto *hull_vec_ptr = new std::vector<std::vector<cv::Point2i>>();
+    std::vector<std::vector<cv::Point2i>> hull_vec;
     for (auto &contours: *contours_vec_ptr) {
         std::vector<cv::Point2i> hull;
         cv::convexHull(contours, hull, true);
-        hull_vec_ptr->emplace_back(hull);
+        hull_vec.emplace_back(hull);
     }
-    std::sort(hull_vec_ptr->begin(), hull_vec_ptr->end(),
+    std::sort(hull_vec.begin(), hull_vec.end(),
               [](const std::vector<cv::Point2i> &hull1, const std::vector<cv::Point2i> &hull2) {
                   return cv::contourArea(hull1) > cv::contourArea(hull2);
               });
 
-    if (hull_vec_ptr->empty()) {
+    if (hull_vec.empty()) {
         std::cout << "can not find mineral in this frame" << std::endl;
-        return;
+        return {};
     }
+    tag_detector::TagMsgArray tag_msg_array;
+    int hull_size = hull_vec.size()<4? hull_vec.size() : 4;
+    for (int i=0;i<hull_size;i++)
+    {
+        
+    auto hull = hull_vec[i];
+    auto * approx_points=new std::vector<cv::Point2f> ();
 
-    auto max_area_hull = hull_vec_ptr[0][0];
-    delete hull_vec_ptr;
-    delete contours_vec_ptr;
+    cv::approxPolyDP(hull,*approx_points,epsilon_, true);
+    for(const auto& approx_point : *approx_points) cv::circle(cv_image_->image,approx_point,8,cv::Scalar(255,0,255),3);
 
-    auto rotate_rect = cv::minAreaRect(max_area_hull);
+    auto rotate_rect = cv::minAreaRect(hull);
     cv::Point2f vertex[4];
     rotate_rect.points(vertex);
 
 
     int angle;
-    if (rotate_rect.size.width <= rotate_rect.size.height) {
+//    if (rotate_rect.size.width <= rotate_rect.size.height) {
+    if (abs(rotate_rect.angle)>=45) {
         angle = rotate_rect.angle + 90;
         int tm = rotate_rect.size.width;
         rotate_rect.size.width = rotate_rect.size.height;
@@ -265,18 +278,25 @@ void Tag::contoursProcess(const cv::Mat *mor_ptr,int color) {
     delete warp_result;
     cv::bitwise_not(*mask, *reverse_mask);
     delete mask;
-    if(reverse_mask->data == nullptr || (cv::countNonZero(*reverse_mask)/reverse_mask->rows*reverse_mask->cols)<=0.3)
+    if( reverse_mask->data == nullptr  ||approx_points->size()!=4)
     {
-        std::cout<<"wrong object,return now"<<std::endl;
-        return;
+        delete approx_points;
+        tag_detector::TagMsg tmp_tag_msg;
+        tmp_tag_msg.letter=6;
+        tag_msg_array.tag_msgs_array.push_back(tmp_tag_msg);
+        continue;
     }
+    delete approx_points;
     cv::resize(*reverse_mask,*reverse_mask,cv::Size(80,80),0,0,cv::INTER_NEAREST);
     if (color)
         masked_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(), "mono8", *reverse_mask).toImageMsg());
     else masked_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(), "mono8", *reverse_mask).toImageMsg());
     int signal=recognizeLetter(reverse_mask);
     delete reverse_mask;
-    resultVisualizaion(max_area_hull,vertex,angle,signal,color);
+    auto tag_msg=resultVisualizaion(hull,vertex,angle,signal,color);
+    tag_msg_array.tag_msgs_array.push_back(tag_msg);
+    }
+    return tag_msg_array;
 }
 
 
@@ -308,9 +328,12 @@ void Tag::imgProcess()
     hsv_red_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *mor_red_ptr).toImageMsg());
     hsv_blue_publisher_.publish(cv_bridge::CvImage(std_msgs::Header(),"mono8" , *mor_blue_ptr).toImageMsg());
 
-    contoursProcess(mor_red_ptr,1);
-    contoursProcess(mor_blue_ptr,0);
+    auto red_tag_msg=contoursProcess(mor_red_ptr,1);
+    auto blue_tag_msg=contoursProcess(mor_blue_ptr,0);
+//    tag_detector::TagMsgArray tag_msg_array;
 
+    red_tag_msg.tag_msgs_array.insert(red_tag_msg.tag_msgs_array.end(),blue_tag_msg.tag_msgs_array.begin(),blue_tag_msg.tag_msgs_array.end());
+    pnp_publisher_.publish(red_tag_msg);
     delete mor_red_ptr;
     delete mor_blue_ptr;
 }

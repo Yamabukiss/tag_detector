@@ -17,7 +17,8 @@
 #include "ctime"
 #include "tf/tf.h"
 #include "tf/transform_broadcaster.h"
-#include "tag_detector/tag_msg.h"
+#include "tag_detector/TagMsg.h"
+#include "tag_detector/TagMsgArray.h"
 class Tag
 {
 public:
@@ -26,9 +27,9 @@ public:
 
     void receiveFromCam(const sensor_msgs::ImageConstPtr &image);
     void imgProcess();
-    void contoursProcess(const cv::Mat *mor_ptr,int color);
-    void resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal,const int color);
-    void pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,const int color);
+    tag_detector::TagMsgArray contoursProcess(const cv::Mat *mor_ptr,int color);
+    tag_detector::TagMsg resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal,const int color);
+    tag_detector::TagMsg pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,const int color);
     int recognizeLetter(const cv::Mat * reverse_mask_ptr);
     ros::NodeHandle nh_;
     ros::Subscriber img_subscriber_;
@@ -71,5 +72,6 @@ public:
     int upper_blue_hsv_h_;
     int upper_blue_hsv_s_;
     int upper_blue_hsv_v_;
-
+    int epsilon_;
+    double area_scale_;
 };
