@@ -2,7 +2,7 @@
 
 void Tag::onInit()
 {
-    img_subscriber_= nh_.subscribe("/stereo_inertial_publisher/color/image", 1, &Tag::receiveFromCam,this);
+    img_subscriber_= nh_.subscribe("/usb_cam/image_raw", 1, &Tag::receiveFromCam,this);
     pnp_publisher_ = nh_.advertise<tag_detector::TagMsgArray>("tag_pnp_publisher", 1);
 
     hsv_red_publisher_ = nh_.advertise<sensor_msgs::Image>("tag_red_hsv_publisher", 1);
@@ -13,9 +13,9 @@ void Tag::onInit()
     callback_ = boost::bind(&Tag::dynamicCallback, this, _1);
     server_.setCallback(callback_);
 
-    distortion_coefficients_ = (cv::Mat_<double>(1,5)<<-0.228270, 0.063140, 0.002289, -0.000506, 0.000000);
-    camera_matrix_ = (cv::Mat_<double>(3,3)<<773.90787,   0.     , 635.16925,
-            0.     , 774.67309, 366.48879,
+    distortion_coefficients_ = (cv::Mat_<double>(1,5)<<0.117969, 0.161520, -0.002693, 0.001004, 0.000000);
+    camera_matrix_ = (cv::Mat_<double>(3,3)<<968.08066,   0.     , 278.26727,
+            0.     , 969.60458, 244.31332,
             0.     ,   0.     ,   1. );
 
     cv::Mat temp_A=cv::imread("/home/yamabuki/detect_ws/src/tag_detector/A.png",cv::IMREAD_GRAYSCALE);
@@ -238,7 +238,7 @@ tag_detector::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr,int color)
               });
 
     if (hull_vec.empty()) {
-        std::cout << "can not find mineral in this frame" << std::endl;
+        std::cout << "can not find tag in this frame" << std::endl;
         return {};
     }
     tag_detector::TagMsgArray tag_msg_array;
