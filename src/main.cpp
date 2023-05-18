@@ -275,9 +275,25 @@ int Tag::findMatchPoint(const cv::Point2f &rotate_point, const std::vector<cv::P
     return dist_vec[0].first;
 }
 
+float Tag::getLineLength(const cv::Point2f &p1, const cv::Point2f &p2)
+{
+    return sqrt(pow((p1.x-p2.x),2) + pow((p1.y-p2.y),2));
+}
 
-rm_msgs::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr, int color) {
+bool Tag::shapeJudgement(cv::Point2f *matches_points)
+{
+    std::vector<float> line_vec;
+    for (int i = 0;i<4;i++)
+    line_vec.push_back(getLineLength(matches_points[i],matches_points[(i+1)%4]));
+    std::sort(line_vec.begin(),line_vec.end(),[](const auto &v1,const auto &v2){return v1>v2;});
+    if (line_vec[0]/line_vec[3]>shape_thresh_) return false;
+    else return true;
+}
+
+
+rm_msgs::TagMsgArray Tag::contoursProcess(const cv::Mat* mor_ptr, int color) {
   auto *contours_vec_ptr = new std::vector<std::vector<cv::Point>>();
+//  cv::medianBlur(*mor_ptr,*mor_ptr,3);
   cv::findContours(*mor_ptr, *contours_vec_ptr, cv::RETR_EXTERNAL,
                    CV_CHAIN_APPROX_SIMPLE);
   std::vector<std::vector<cv::Point2i>> hull_vec;
@@ -286,6 +302,7 @@ rm_msgs::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr, int color) {
     cv::convexHull(contours, hull, true);
     hull_vec.emplace_back(hull);
   }
+  delete contours_vec_ptr;
   std::sort(hull_vec.begin(), hull_vec.end(),
             [](const std::vector<cv::Point2i> &hull1,
                const std::vector<cv::Point2i> &hull2) {
@@ -293,8 +310,8 @@ rm_msgs::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr, int color) {
             });
 
   if (hull_vec.empty()) {
-    std::cout << "can not find tag in this frame" << std::endl;
-    return {};
+      ROS_INFO("can not find tag in this frame");
+      return {};
   }
   rm_msgs::TagMsgArray tag_msg_array;
   int hull_size = hull_vec.size() < 4 ? hull_vec.size() : 4;
@@ -308,7 +325,7 @@ rm_msgs::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr, int color) {
       rm_msgs::TagMsg tmp_tag_msg;
       tmp_tag_msg.letter = 6;
       tag_msg_array.tag_msgs_array.push_back(tmp_tag_msg);
-      std::cout << "wrong object not rectangle" << std::endl;
+      //ROS_INFO("wrong object not rectangle");
       continue;
     }
     for (const auto &approx_point : approx_points)
@@ -318,9 +335,14 @@ rm_msgs::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr, int color) {
     cv::Point2f vertex[4];
     cv::Point2f matches_points[4];
     rotate_rect.points(vertex);
-    auto long_edge = rotate_rect.size.width >= rotate_rect.size.height? rotate_rect.size.width : rotate_rect.size.height;
-    auto short_edge = rotate_rect.size.width < rotate_rect.size.height? rotate_rect.size.width : rotate_rect.size.height;
-    if (long_edge/short_edge >=shape_thresh_)
+
+    for (int i = 0; i < 4; i++)
+    {
+        auto match_point = approx_points[findMatchPoint(vertex[i],approx_points)];
+        matches_points[i] = match_point;
+    }
+
+    if(!shapeJudgement(matches_points))
     {
         rm_msgs::TagMsg tmp_tag_msg;
         tmp_tag_msg.letter = 6;
@@ -328,13 +350,8 @@ rm_msgs::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr, int color) {
         std::cout << "wrong object not correct shape" << std::endl;
         continue;
     }
-    for (int i = 0; i < 4; i++)
-    {
-        auto match_point = approx_points[findMatchPoint(vertex[i],approx_points)];
-        matches_points[i] = match_point;
-    }
 
-      int angle;
+    int angle;
     //    if (rotate_rect.size.width <= rotate_rect.size.height) {
     if (abs(rotate_rect.angle) >= 45) {
       angle = rotate_rect.angle + 90;
@@ -355,11 +372,11 @@ rm_msgs::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr, int color) {
                       *mask);
     delete warp_result;
     cv::bitwise_not(*mask, reverse_mask);
+    delete mask;
     if (reverse_mask.data == nullptr) {
       rm_msgs::TagMsg tmp_tag_msg;
       tmp_tag_msg.letter = 6;
       tag_msg_array.tag_msgs_array.push_back(tmp_tag_msg);
-      std::cout << "wrong object" << std::endl;
       continue;
     }
     cv::resize(reverse_mask, reverse_mask, cv::Size(40, 40), 0, 0,
@@ -375,6 +392,7 @@ rm_msgs::TagMsgArray Tag::contoursProcess(const cv::Mat *mor_ptr, int color) {
     int signal = recognizeLetter(reverse_mask);
     auto tag_msg = resultVisualizaion(hull, matches_points, angle, signal, color);
     tag_msg_array.tag_msgs_array.push_back(tag_msg);
+
   }
   return tag_msg_array;
 }
@@ -389,7 +407,6 @@ void Tag::imgProcess() {
 
   auto *binary_red_ptr = new cv::Mat();
   auto *binary_blue_ptr = new cv::Mat();
-
   cv::cvtColor(cv_image_->image, *hsv_red_ptr, cv::COLOR_BGR2HSV);
   cv::cvtColor(cv_image_->image, *hsv_blue_ptr, cv::COLOR_BGR2HSV);
   cv::inRange(*hsv_red_ptr,
@@ -421,9 +438,9 @@ void Tag::imgProcess() {
       cv_bridge::CvImage(std_msgs::Header(), "mono8", *mor_blue_ptr)
           .toImageMsg());
 
+
   auto red_tag_msg = contoursProcess(mor_red_ptr, 1);
   auto blue_tag_msg = contoursProcess(mor_blue_ptr, 0);
-  //    tag_detector::TagMsgArray tag_msg_array;
 
   red_tag_msg.tag_msgs_array.insert(red_tag_msg.tag_msgs_array.end(),
                                     blue_tag_msg.tag_msgs_array.begin(),

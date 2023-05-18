@@ -28,11 +28,13 @@ public:
 
     void receiveFromCam(const sensor_msgs::ImageConstPtr &image);
     void imgProcess();
-    rm_msgs::TagMsgArray contoursProcess(const cv::Mat *mor_ptr,int color);
+    rm_msgs::TagMsgArray contoursProcess(const cv::Mat* mor_ptr,int color);
     rm_msgs::TagMsg resultVisualizaion(const std::vector<cv::Point2i> &hull,const cv::Point2f (&vertex)[4],const int angle,const int signal,const int color);
     rm_msgs::TagMsg pubMessage(const cv::Mat &rvec,const cv::Mat &tvec,const int signal,const int color);
     int recognizeLetter(const cv::Mat  &reverse_mask);
     int findMatchPoint(const cv::Point2f &rotate_point ,  const std::vector<cv::Point2i> &approx_points);
+    bool shapeJudgement(cv::Point2f *matches_points);
+    float getLineLength(const cv::Point2f &p1,const cv::Point2f &p2);
     ros::NodeHandle nh_;
     ros::Subscriber img_subscriber_;
     ros::Subscriber depth_subscriber_;
@@ -84,5 +86,4 @@ public:
     int epsilon_;
     double area_thresh_;
     double shape_thresh_;
-
 };
